@@ -15,9 +15,9 @@ const getBasePath = () => {
 };
 
 const data: ISiteMetadataResult = {
-  siteTitle: 'Running Page',
-  siteUrl: 'https://yihong.run',
-  logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTtc69JxHNcmN1ETpMUX4dozAgAN6iPjWalQ&usqp=CAU',
+  siteTitle: 'RunHK',
+  siteUrl: 'https://github.com/HK13127/RunHK',
+  logo: 'https://free.boltp.com/2026/05/05/69fa07cccbf05.webp',
   description: 'Personal site and blog',
   navLinks: [
     {
@@ -26,7 +26,7 @@ const data: ISiteMetadataResult = {
     },
     {
       name: 'Blog',
-      url: 'https://github.com/yihong0618/gitblog',
+      url: 'https://github.com/HK13127/RunHK',
     },
     {
       name: 'About',
