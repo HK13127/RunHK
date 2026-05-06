@@ -247,21 +247,21 @@ jobs:
         # python run_page/gen_svg.py --from-db --title "${{ env.TITLE }}" --type github --github-style "align-monday" --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.svg --use-localtime --min-distance 0.5
         # python run_page/gen_svg.py --from-db --year $(date +"%Y")  --language zh_CN --title "$(date +"%Y") Running" --type github --github-style "align-monday" --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github_$(date +"%Y").svg --use-localtime --min-distance 0.5
 
-      # ========== 新增 ==========
+      # 步骤 1: 构建前端项目
       - name: Build Frontend Project
-        id: build_frontend  # 为步骤添加一个ID，便于后续引用
+        id: build_frontend
         run: |
           echo "🚀 开始构建前端应用..."
-          # 检查并安装 pnpm
+          # 安装 pnpm
           npm install -g pnpm
           # 安装项目依赖
           pnpm install
           # 执行构建
           pnpm run build
-          # 关键：列出并确认 dist 目录已生成
+          # 确认构建产物
           echo "构建完成，检查 dist 目录:"
           ls -la ./dist/
-          echo "dist 目录下的文件数: $(find ./dist -type f | wc -l)"
+          echo "dist 目录文件数: $(find ./dist -type f | wc -l)"
           
       - name: Make month of life
         if: env.GENERATE_MONTH_OF_LIFE == 'true'
@@ -301,16 +301,16 @@ jobs:
           git commit -m 'update new runs' || echo 'nothing to commit'
           git push || echo 'nothing to push'
 
-      # ========== 新增：部署到 CloudBase ==========
+      # 步骤 2: 部署到 CloudBase (注意：这里没有 needs 参数)
       - name: Deploy to Tencent CloudBase
-        needs: build_frontend  # 关键：声明此步骤依赖于构建步骤，确保构建先完成
+        # 移除了 `needs: build_frontend`
         env:
           TENCENT_CLOUD_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
           TENCENT_CLOUD_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
           TENCENT_CLOUD_ENV_ID: ${{ secrets.TENCENT_ENV_ID }}
         run: |
           echo "开始部署到 CloudBase..."
-          # 再次确认 dist 目录存在
+          # 部署前，再次确认 dist 目录存在
           if [ ! -d "./dist" ]; then
             echo "❌ 错误：部署前检查发现 dist 目录不存在！"
             exit 1
@@ -318,7 +318,7 @@ jobs:
           echo "dist 目录存在，准备部署..."
           # 安装 CloudBase CLI
           npm install -g @cloudbase/cli
-          # 执行部署命令
+          # 执行部署
           tcb hosting:deploy ./dist -e $TENCENT_CLOUD_ENV_ID
           echo "✅ 部署命令执行完毕。"
 
