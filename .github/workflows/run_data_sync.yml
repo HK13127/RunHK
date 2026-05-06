@@ -264,41 +264,6 @@ jobs:
         run: |
           python run_page/gen_svg.py --from-db --type year_summary --output assets/year_summary.svg --athlete "${{ env.ATHLETE }}"
 
-      - name: Build Frontend Project
-        run: |
-          echo "🚀 开始构建前端应用..."
-          
-          # 检查当前Node.js版本
-          node --version
-          npm --version
-          
-          # 检查package.json中的构建脚本
-          echo "检查package.json中的build脚本:"
-          cat package.json | grep '"scripts"'
-          cat package.json | grep '"build"'
-          
-          # 安装pnpm
-          echo "安装pnpm..."
-          npm install -g pnpm
-          
-          # 安装项目依赖
-          echo "安装项目依赖..."
-          pnpm install
-          
-          # 执行构建
-          echo "执行构建命令: pnpm run build"
-          pnpm run build
-          
-          # 检查构建结果
-          echo "检查构建产物dist目录:"
-          ls -la ./dist/
-          
-          # 检查dist目录下的文件
-          echo "dist目录内容:"
-          find ./dist -type f | head -20
-          
-          echo "✅ 前端构建成功！"
-
       - name: Save data to parqent
         if: env.SAVE_TO_PARQENT == 'true'
         run: |
@@ -319,6 +284,20 @@ jobs:
           git commit -m 'update new runs' || echo 'nothing to commit'
           git push || echo 'nothing to push'
 
+      - name: Deploy to Tencent CloudBase
+        env:
+          SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
+          SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
+        run: |
+          # 安装 CloudBase CLI
+          npm install -g @cloudbase/cli
+          # 配置登录信息
+          tcb login --apiKeyId "$SECRET_ID" --apiKey "$SECRET_KEY"
+          # 切换到云开发环境
+          tcb use --envId ${{ secrets.TENCENT_ENV_ID }}
+          # 部署 dist 目录下的所有文件到静态网站托管
+          tcb hosting:deploy ./dist -e ${{ secrets.TENCENT_ENV_ID }}
+
       - name: Set Output
         id: set_output
         env:
@@ -329,63 +308,6 @@ jobs:
           echo "SAVE_DATA_IN_GITHUB_CACHE=$SAVE_DATA_IN_GITHUB_CACHE" >> "$GITHUB_OUTPUT"
           echo "DATA_CACHE_PREFIX=$DATA_CACHE_PREFIX" >> "$GITHUB_OUTPUT"
           echo "BUILD_GH_PAGES=$BUILD_GH_PAGES" >> "$GITHUB_OUTPUT"
-
-# ========== 【在这里插入】以下是您需要新增的COS上传步骤 ==========
-      - name: Upload to Tencent Cloud COS
-        if: success()
-        env:
-          COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}
-          COS_SECRET_KEY: ${{ secrets.COS_SECRET_KEY }}
-          COS_BUCKET: ${{ secrets.COS_BUCKET }}
-          COS_REGION: ${{ secrets.COS_REGION }}
-        run: |
-          echo "======= 开始增量上传到腾讯云COS ======="
-          echo "时间: $(date)"
-          
-          # 1. 检查构建产物dist目录（必须存在）
-          echo "检查构建产物dist目录..."
-          if [ ! -d "./dist" ]; then
-            echo "❌ 致命错误: dist目录不存在！前端构建步骤可能失败了。"
-            echo "当前目录内容:"
-            ls -la
-            exit 1
-          else
-            echo "✅ dist目录存在，包含文件数: $(find ./dist -type f | wc -l)"
-            echo "dist目录内容预览:"
-            ls -la ./dist/
-          fi
-          
-          # 2. 安装并配置coscmd
-          pip install coscmd
-          coscmd config -a $COS_SECRET_ID -s $COS_SECRET_KEY -b $COS_BUCKET -r $COS_REGION
-          
-          echo "开始增量上传文件 (使用-s参数，仅同步变化的文件)..."
-          
-          # 3. 上传构建产物dist目录到根目录（这是最关键的步骤！）
-          echo "上传: dist目录 (前端构建产物，包含index.html、JS、CSS等)"
-          coscmd upload -rs ./dist/ /
-          
-          # 4. 上传assets目录 (SVG图片，这些不在dist中)
-          if [ -d "./assets" ]; then
-            echo "上传: assets目录 (统计SVG图)"
-            coscmd upload -rs ./assets/ /assets/
-          fi
-          
-          # 5. 上传FIT_OUT目录 (原始运动数据)
-          if [ -d "./FIT_OUT" ]; then
-            echo "上传: FIT_OUT目录 (FIT数据文件)"
-            coscmd upload -rs ./FIT_OUT/ /FIT_OUT/
-          fi
-          
-          # 6. 列出根目录文件，确认上传
-          echo "上传完成，根目录文件列表："
-          coscmd list -ar / | head -30 || echo "列表显示可能失败，但不影响结果。"
-          
-          echo "=========================================="
-          echo "🎉 所有文件已同步至腾讯云 COS！"
-          echo "🌐 请访问您的静态网站："
-          echo "https://$COS_BUCKET.cos-website.$COS_REGION.myqcloud.com"
-          echo "=========================================="
           
   publish_github_pages:
     if: needs.sync.result == 'success' && needs.sync.outputs.BUILD_GH_PAGES == 'true'
