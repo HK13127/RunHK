@@ -305,19 +305,24 @@ jobs:
         run: |
           echo "===== 开始上传到腾讯云COS ====="
           
-          # 1. 安装coscmd工具
+          # 1. 验证配置参数
+          echo "验证配置参数..."
+          echo "COS_BUCKET: $COS_BUCKET"
+          echo "COS_REGION: $COS_REGION"
+          
+          # 检查存储桶名称是否合法
+          if [[ ! $COS_BUCKET =~ ^[a-z0-9-]+$ ]]; then
+            echo "错误: 存储桶名称 '$COS_BUCKET' 包含非法字符！"
+            echo "存储桶名称只能包含小写字母、数字和连字符(-)"
+            exit 1
+          fi
+          
+          # 2. 安装coscmd工具
           pip install coscmd
           
-          # 2. 配置连接
+          # 3. 配置连接
+          echo "配置COS连接..."
           coscmd config -a $COS_SECRET_ID -s $COS_SECRET_KEY -b $COS_BUCKET -r $COS_REGION
-          
-          # 3. 检查当前目录结构
-          echo "当前目录结构："
-          ls -la
-          echo "assets目录内容："
-          ls -la ./assets/ || echo "assets目录不存在"
-          echo "FIT_OUT目录内容："
-          ls -la ./FIT_OUT/ || echo "FIT_OUT目录不存在"
           
           # 4. 上传文件
           echo "开始上传文件..."
@@ -325,7 +330,7 @@ jobs:
           # 上传 index.html
           if [ -f "index.html" ]; then
             echo "上传: index.html"
-            coscmd upload index.html /
+            coscmd upload index.html / || exit 1
           else
             echo "错误: index.html 不存在！"
             exit 1
@@ -334,7 +339,7 @@ jobs:
           # 上传 assets 目录
           if [ -d "./assets" ]; then
             echo "上传: assets目录"
-            coscmd upload -r ./assets/ /assets/
+            coscmd upload -r ./assets/ /assets/ || exit 1
           else
             echo "错误: assets目录不存在！"
             exit 1
@@ -343,7 +348,7 @@ jobs:
           # 上传 FIT_OUT 目录
           if [ -d "./FIT_OUT" ]; then
             echo "上传: FIT_OUT目录"
-            coscmd upload -r ./FIT_OUT/ /FIT_OUT/
+            coscmd upload -r ./FIT_OUT/ /FIT_OUT/ || exit 1
           else
             echo "警告: FIT_OUT目录不存在，跳过"
           fi
@@ -351,22 +356,12 @@ jobs:
           # 上传 GPX_OUT 目录
           if [ -d "./GPX_OUT" ]; then
             echo "上传: GPX_OUT目录"
-            coscmd upload -r ./GPX_OUT/ /GPX_OUT/
+            coscmd upload -r ./GPX_OUT/ /GPX_OUT/ || exit 1
           else
             echo "信息: GPX_OUT目录不存在，跳过"
           fi
           
-          # 上传 src/static 目录
-          if [ -d "./src/static" ]; then
-            echo "上传: src/static目录"
-            coscmd upload -r ./src/static/ /src/static/
-          fi
-          
-          # 5. 列出已上传文件
-          echo "已上传文件列表："
-          coscmd list -ar || echo "无法列出文件"
-          
-          # 6. 显示访问地址
+          # 5. 显示上传结果
           echo "=========================================="
           echo "上传完成！"
           echo "请访问您的网站："
