@@ -286,17 +286,14 @@ jobs:
 
       - name: Deploy to Tencent CloudBase
         env:
-          SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
-          SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
+          TENCENT_CLOUD_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
+          TENCENT_CLOUD_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
+          TENCENT_CLOUD_ENV_ID: ${{ secrets.TENCENT_ENV_ID }}
         run: |
           # 安装 CloudBase CLI
           npm install -g @cloudbase/cli
-          # 配置登录信息
-          tcb login --apiKeyId "$SECRET_ID" --apiKey "$SECRET_KEY"
-          # 切换到云开发环境
-          tcb use --envId ${{ secrets.TENCENT_ENV_ID }}
-          # 部署 dist 目录下的所有文件到静态网站托管
-          tcb hosting:deploy ./dist -e ${{ secrets.TENCENT_ENV_ID }}
+          # 使用环境变量认证，直接部署
+          tcb hosting:deploy ./dist -e $TENCENT_CLOUD_ENV_ID
 
       - name: Set Output
         id: set_output
