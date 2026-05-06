@@ -303,24 +303,33 @@ jobs:
 
       # 步骤 2: 部署到 CloudBase (注意：这里没有 needs 参数)
       - name: Deploy to Tencent CloudBase
-        # 移除了 `needs: build_frontend`
         env:
           TENCENT_CLOUD_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
           TENCENT_CLOUD_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
           TENCENT_CLOUD_ENV_ID: ${{ secrets.TENCENT_ENV_ID }}
         run: |
           echo "开始部署到 CloudBase..."
-          # 部署前，再次确认 dist 目录存在
+          
+          # 1. 检查dist目录
           if [ ! -d "./dist" ]; then
             echo "❌ 错误：部署前检查发现 dist 目录不存在！"
             exit 1
           fi
           echo "dist 目录存在，准备部署..."
-          # 安装 CloudBase CLI
+          
+          # 2. 安装 CloudBase CLI
           npm install -g @cloudbase/cli
-          # 执行部署
-          tcb hosting:deploy ./dist -e $TENCENT_CLOUD_ENV_ID
-          echo "✅ 部署命令执行完毕。"
+          
+          # 3. 使用环境变量进行认证（关键步骤）
+          # 设置环境变量，让tcb命令自动使用
+          export TCB_ENV_ID=$TENCENT_CLOUD_ENV_ID
+          
+          # 4. 使用正确的命令格式部署
+          # 注意：使用 hosting deploy 而不是 hosting:deploy
+          echo "开始上传文件到 CloudBase..."
+          tcb hosting deploy ./dist -e $TENCENT_CLOUD_ENV_ID
+          
+          echo "✅ 部署完成！"
 
       - name: Set Output
         id: set_output
