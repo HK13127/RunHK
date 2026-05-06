@@ -294,6 +294,48 @@ jobs:
           echo "DATA_CACHE_PREFIX=$DATA_CACHE_PREFIX" >> "$GITHUB_OUTPUT"
           echo "BUILD_GH_PAGES=$BUILD_GH_PAGES" >> "$GITHUB_OUTPUT"
 
+# ========== 【在这里插入】以下是您需要新增的COS上传步骤 ==========
+      - name: Upload to Tencent Cloud COS
+        if: success()
+        env:
+          COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}
+          COS_SECRET_KEY: ${{ secrets.COS_SECRET_KEY }}
+          COS_BUCKET: ${{ secrets.COS_BUCKET }}
+          COS_REGION: ${{ secrets.COS_REGION }}
+        run: |
+          echo “开始安装并配置COS命令行工具...”
+          pip install coscmd
+          coscmd config -a $COS_SECRET_ID -s $COS_SECRET_KEY -b $COS_BUCKET -r $COS_REGION
+          
+          echo “开始上传文件...”
+          
+          # 上传核心网页文件
+          if [ -f “index.html” ]; then
+            coscmd upload index.html /
+          fi
+          
+          # 上传资源目录（必须）
+          if [ -d “./assets” ]; then
+            coscmd upload -r ./assets/ /assets/
+          fi
+          
+          # 上传高驰的FIT文件目录（重要）
+          if [ -d “./FIT_OUT” ]; then
+            coscmd upload -r ./FIT_OUT/ /FIT_OUT/
+          fi
+          
+          # 上传GPX文件目录（如果脚本会生成）
+          if [ -d “./GPX_OUT” ]; then
+            coscmd upload -r ./GPX_OUT/ /GPX_OUT/
+          fi
+          
+          # 上传其他静态目录（根据您的项目实际情况检查）
+          if [ -d “./src/static” ]; then
+            coscmd upload -r ./src/static/ /src/static/
+          fi
+          
+          echo “上传完成！您的网站地址：https://$COS_BUCKET.cos.$COS_REGION.myqcloud.com”
+          
   publish_github_pages:
     if: needs.sync.result == 'success' && needs.sync.outputs.BUILD_GH_PAGES == 'true'
     name: Build and publish Github Pages
