@@ -303,38 +303,75 @@ jobs:
           COS_BUCKET: ${{ secrets.COS_BUCKET }}
           COS_REGION: ${{ secrets.COS_REGION }}
         run: |
-          echo “开始安装并配置COS命令行工具...”
+          echo "===== 开始上传到腾讯云COS ====="
+          
+          # 1. 安装coscmd工具
           pip install coscmd
+          
+          # 2. 配置连接
           coscmd config -a $COS_SECRET_ID -s $COS_SECRET_KEY -b $COS_BUCKET -r $COS_REGION
           
-          echo “开始上传文件...”
+          # 3. 检查当前目录结构
+          echo "当前目录结构："
+          ls -la
+          echo "assets目录内容："
+          ls -la ./assets/ || echo "assets目录不存在"
+          echo "FIT_OUT目录内容："
+          ls -la ./FIT_OUT/ || echo "FIT_OUT目录不存在"
           
-          # 上传核心网页文件
-          if [ -f “index.html” ]; then
+          # 4. 上传文件
+          echo "开始上传文件..."
+          
+          # 上传 index.html
+          if [ -f "index.html" ]; then
+            echo "上传: index.html"
             coscmd upload index.html /
+          else
+            echo "错误: index.html 不存在！"
+            exit 1
           fi
           
-          # 上传资源目录（必须）
-          if [ -d “./assets” ]; then
+          # 上传 assets 目录
+          if [ -d "./assets" ]; then
+            echo "上传: assets目录"
             coscmd upload -r ./assets/ /assets/
+          else
+            echo "错误: assets目录不存在！"
+            exit 1
           fi
           
-          # 上传高驰的FIT文件目录（重要）
-          if [ -d “./FIT_OUT” ]; then
+          # 上传 FIT_OUT 目录
+          if [ -d "./FIT_OUT" ]; then
+            echo "上传: FIT_OUT目录"
             coscmd upload -r ./FIT_OUT/ /FIT_OUT/
+          else
+            echo "警告: FIT_OUT目录不存在，跳过"
           fi
           
-          # 上传GPX文件目录（如果脚本会生成）
-          if [ -d “./GPX_OUT” ]; then
+          # 上传 GPX_OUT 目录
+          if [ -d "./GPX_OUT" ]; then
+            echo "上传: GPX_OUT目录"
             coscmd upload -r ./GPX_OUT/ /GPX_OUT/
+          else
+            echo "信息: GPX_OUT目录不存在，跳过"
           fi
           
-          # 上传其他静态目录（根据您的项目实际情况检查）
-          if [ -d “./src/static” ]; then
+          # 上传 src/static 目录
+          if [ -d "./src/static" ]; then
+            echo "上传: src/static目录"
             coscmd upload -r ./src/static/ /src/static/
           fi
           
-          echo “上传完成！您的网站地址：https://$COS_BUCKET.cos.$COS_REGION.myqcloud.com”
+          # 5. 列出已上传文件
+          echo "已上传文件列表："
+          coscmd list -ar || echo "无法列出文件"
+          
+          # 6. 显示访问地址
+          echo "=========================================="
+          echo "上传完成！"
+          echo "请访问您的网站："
+          echo "https://$COS_BUCKET.cos.$COS_REGION.myqcloud.com"
+          echo "=========================================="
           
   publish_github_pages:
     if: needs.sync.result == 'success' && needs.sync.outputs.BUILD_GH_PAGES == 'true'
