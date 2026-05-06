@@ -310,13 +310,6 @@ jobs:
           echo "COS_BUCKET: $COS_BUCKET"
           echo "COS_REGION: $COS_REGION"
           
-          # 检查存储桶名称是否合法
-          if [[ ! $COS_BUCKET =~ ^[a-z0-9-]+$ ]]; then
-            echo "错误: 存储桶名称 '$COS_BUCKET' 包含非法字符！"
-            echo "存储桶名称只能包含小写字母、数字和连字符(-)"
-            exit 1
-          fi
-          
           # 2. 安装coscmd工具
           pip install coscmd
           
@@ -324,7 +317,14 @@ jobs:
           echo "配置COS连接..."
           coscmd config -a $COS_SECRET_ID -s $COS_SECRET_KEY -b $COS_BUCKET -r $COS_REGION
           
-          # 4. 上传文件
+          # 4. 检查当前目录结构
+          echo "当前目录结构："
+          ls -la
+          echo "检查关键目录是否存在..."
+          ls -la ./src/ 2>/dev/null || echo "src目录不存在"
+          ls -la ./public/ 2>/dev/null || echo "public目录不存在"
+          
+          # 5. 上传文件
           echo "开始上传文件..."
           
           # 上传 index.html
@@ -361,11 +361,37 @@ jobs:
             echo "信息: GPX_OUT目录不存在，跳过"
           fi
           
-          # 5. 显示上传结果
+          # 上传 public 目录（重要！）
+          if [ -d "./public" ]; then
+            echo "上传: public目录"
+            coscmd upload -r ./public/ /public/ || exit 1
+          else
+            echo "警告: public目录不存在，可能影响网站显示"
+          fi
+          
+          # 上传 src 目录
+          if [ -d "./src" ]; then
+            echo "上传: src目录"
+            coscmd upload -r ./src/ /src/ || exit 1
+          fi
+          
+          # 上传其他静态文件
+          for file in favicon.ico manifest.json robots.txt; do
+            if [ -f "$file" ]; then
+              echo "上传: $file"
+              coscmd upload "$file" / || exit 1
+            fi
+          done
+          
+          # 6. 列出已上传文件
+          echo "已上传文件列表（前20个）："
+          coscmd list -ar | head -20 || echo "无法列出文件"
+          
+          # 7. 显示访问地址
           echo "=========================================="
           echo "上传完成！"
-          echo "请访问您的网站："
-          echo "https://$COS_BUCKET.cos.$COS_REGION.myqcloud.com"
+          echo "请使用静态网站域名访问："
+          echo "https://$COS_BUCKET.cos-website.$COS_REGION.myqcloud.com"
           echo "=========================================="
           
   publish_github_pages:
