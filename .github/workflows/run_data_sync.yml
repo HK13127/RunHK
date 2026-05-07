@@ -37,7 +37,7 @@ env:
   # Dont making this huge, just picking points you needing. https://developers.google.com/maps/documentation/utilities/polylineutility using this tool to making your polyline
   IGNORE_POLYLINE: 'ktjrFoemeU~IorGq}DeB'
   IGNORE_RANGE: 10 # Unit meter
-  USE_CLOUDFLARE_WARP: true # If you want to use Cloudflare WARP to bypass network restrictions, set it to `true`. Currently only Garmin needs this.
+  USE_CLOUDFLARE_WARP: false # If you want to use Cloudflare WARP to bypass network restrictions, set it to `true`. Currently only Garmin needs this.
   SAVE_DATA_IN_GITHUB_CACHE: false # if you deploy in the vercel, check the README
   DATA_CACHE_PREFIX: 'track_data'
   BUILD_GH_PAGES: true # If you do not need GitHub Page please set it to `false`
@@ -246,22 +246,6 @@ jobs:
         # if you want use the style:the start day of each year always aligns with Monday. please use the following script:
         # python run_page/gen_svg.py --from-db --title "${{ env.TITLE }}" --type github --github-style "align-monday" --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.svg --use-localtime --min-distance 0.5
         # python run_page/gen_svg.py --from-db --year $(date +"%Y")  --language zh_CN --title "$(date +"%Y") Running" --type github --github-style "align-monday" --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github_$(date +"%Y").svg --use-localtime --min-distance 0.5
-
-      # 步骤 1: 构建前端项目
-      - name: Build Frontend Project
-        id: build_frontend
-        run: |
-          echo "🚀 开始构建前端应用..."
-          # 安装 pnpm
-          npm install -g pnpm
-          # 安装项目依赖
-          pnpm install
-          # 执行构建
-          pnpm run build
-          # 确认构建产物
-          echo "构建完成，检查 dist 目录:"
-          ls -la ./dist/
-          echo "dist 目录文件数: $(find ./dist -type f | wc -l)"
           
       - name: Make month of life
         if: env.GENERATE_MONTH_OF_LIFE == 'true'
@@ -300,8 +284,24 @@ jobs:
           git add .
           git commit -m 'update new runs' || echo 'nothing to commit'
           git push || echo 'nothing to push'
+          
+      # 步骤 1: 构建前端项目
+      - name: Build Frontend Project
+        id: build_frontend
+        run: |
+          echo "🚀 开始构建前端应用..."
+          # 安装 pnpm
+          npm install -g pnpm
+          # 安装项目依赖
+          pnpm install
+          # 执行构建
+          pnpm run build
+          # 确认构建产物
+          echo "构建完成，检查 dist 目录:"
+          ls -la ./dist/
+          echo "dist 目录文件数: $(find ./dist -type f | wc -l)"
 
-      # 步骤 2: 部署到 CloudBase (注意：这里没有 needs 参数)
+      # 步骤 2: 部署到 CloudBase
       - name: Deploy to Tencent CloudBase
         env:
           TENCENT_CLOUD_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
@@ -330,7 +330,6 @@ jobs:
           tcb hosting deploy ./dist
           
           echo "✅ 部署完成！"
-
 
       - name: Set Output
         id: set_output
