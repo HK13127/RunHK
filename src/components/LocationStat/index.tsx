@@ -26,7 +26,7 @@ const LocationStat = ({
         {CHINESE_LOCATION_INFO_MESSAGE_SECOND}
         <br />
         <br />
-        Run,HK,run.
+        No human is limited.
       </p>
     </section>
     <hr />
