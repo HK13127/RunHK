@@ -102,9 +102,14 @@ const Index = () => {
     return getBoundsForGeoData(geoData);
   }, [geoData]);
 
-  const [viewState, setViewState] = useState<IViewState>(() => ({
-    ...bounds,
-  }));
+  // 修改后：初始化为中国地图
+  const [viewState, setViewState] = useState<IViewState>({
+    longitude: 105.0,   // 中心经度：定位到中国中部
+    latitude: 38.0,     // 中心纬度：定位到中国中部
+    zoom: 3,          // 缩放级别：足够看到中国全境，并包含部分周边地区
+    pitch: 0,           // 俯仰角：保持二维俯视图
+    bearing: 0,         // 方位角：正北朝上
+  });
 
   // Add state for animated geoData to handle the animation effect
   const [animatedGeoData, setAnimatedGeoData] = useState(geoData);
@@ -310,15 +315,15 @@ const Index = () => {
     }
   }, [runs, singleRunId, locateActivity]);
 
-  // Update bounds when geoData changes
+  // 修改后：只有当前不是 "Total" 视图时才自动缩放到边界
   useEffect(() => {
-    if (singleRunId === null) {
+    if (singleRunId === null && currentFilter.item !== 'Total') {
       setViewState((prev) => ({
         ...prev,
         ...bounds,
       }));
     }
-  }, [bounds, singleRunId]);
+  }, [bounds, singleRunId, currentFilter.item]);
 
   // Animate geoData when runs change
   useEffect(() => {
