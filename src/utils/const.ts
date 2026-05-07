@@ -63,7 +63,7 @@ const ENGLISH_INFO_MESSAGE = (yearLength: number, year: string): string =>
 // English is not supported for location info messages yet
 const CHINESE_LOCATION_INFO_MESSAGE_FIRST =
   '跑过了一点距离，点亮了一些地方。';
-const CHINESE_LOCATION_INFO_MESSAGE_SECOND = '不要停下奔跑的脚步。';
+const CHINESE_LOCATION_INFO_MESSAGE_SECOND = '更多数据请查看年份&统计视图～';
 
 const INFO_MESSAGE = IS_CHINESE ? CHINESE_INFO_MESSAGE : ENGLISH_INFO_MESSAGE;
 const FULL_MARATHON_RUN_TITLE = IS_CHINESE ? '全程马拉松' : 'Full Marathon';
