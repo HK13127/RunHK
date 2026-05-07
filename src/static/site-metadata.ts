@@ -15,7 +15,7 @@ const getBasePath = () => {
 };
 
 const data: ISiteMetadataResult = {
-  siteTitle: 'RunHK',
+  siteTitle: 'Run.HK',
   siteUrl: 'https://github.com/HK13127/RunHK',
   logo: 'https://free.boltp.com/2026/05/05/69fa07cccbf05.webp',
   description: 'Personal site and blog',
