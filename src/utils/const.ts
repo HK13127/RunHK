@@ -55,7 +55,7 @@ const IS_CHINESE = true;
 const USE_ANIMATION_FOR_GRID = false;
 const CHINESE_INFO_MESSAGE = (yearLength: number, year: string): string => {
   const yearStr = year === 'Total' ? '所有' : ` ${year} `;
-  return `${yearStr} 年是我跑步的第 ${yearLength} 年，下面列表展示的是这些年的跑步数据。`;
+  return ` 跑步的第 ${yearLength} 年，下面展示的是 ${yearStr} 年的跑步数据。`;
 };
 const ENGLISH_INFO_MESSAGE = (yearLength: number, year: string): string =>
   `Running Journey with ${yearLength} Years, the table shows year ${year} data`;
