@@ -398,21 +398,28 @@ const Index = () => {
       <Helmet>
         <html lang="en" data-theme={theme} />
       </Helmet>
+
+      {/* 电脑端布局不变 / 手机端自动适配：标题置顶 + 地图居中 + 统计垫底 */}
       <div className="w-full lg:w-1/3">
         <h1 className="my-12 mt-6 text-5xl font-extrabold italic">
           <a href={siteUrl}>{siteTitle}</a>
         </h1>
-        {(viewState.zoom ?? 0) <= 3 && IS_CHINESE ? (
-          <LocationStat
-            changeYear={changeYear}
-            changeCity={changeCity}
-            changeTitle={changeTitle}
-          />
-        ) : (
-          <YearsStat year={year} onClick={changeYear} />
-        )}
+        {/* 电脑端保留原有统计，手机端自动下沉 */}
+        <div className="hidden lg:block">
+          {(viewState.zoom ?? 0) <= 3 && IS_CHINESE ? (
+            <LocationStat
+              changeYear={changeYear}
+              changeCity={changeCity}
+              changeTitle={changeTitle}
+            />
+          ) : (
+            <YearsStat year={year} onClick={changeYear} />
+          )}
+        </div>
       </div>
+
       <div className="w-full lg:w-2/3" id="map-container">
+        {/* 地图：手机端中间显示，电脑端不变 */}
         <RunMap
           title={title}
           viewState={viewState}
@@ -422,19 +429,36 @@ const Index = () => {
           thisYear={year}
           animationTrigger={animationTrigger}
         />
-        {year === 'Total' ? (
-          <SVGStat />
-        ) : (
-          <RunTable
-            runs={runs}
-            locateActivity={locateActivity}
-            setActivity={setActivity}
-            runIndex={runIndex}
-            setRunIndex={setRunIndex}
-          />
-        )}
+
+        {/* 手机端专用：标题下方、地图上方（无任何class修改） */}
+        <div className="lg:hidden mt-10">
+          {(viewState.zoom ?? 0) <= 3 && IS_CHINESE ? (
+            <LocationStat
+              changeYear={changeYear}
+              changeCity={changeCity}
+              changeTitle={changeTitle}
+            />
+          ) : (
+            <YearsStat year={year} onClick={changeYear} />
+          )}
+        </div>
+
+        {/* 表格 / SVG统计 不变 */}
+        <div className="mt-2">
+          {year === 'Total' ? (
+            <SVGStat />
+          ) : (
+            <RunTable
+              runs={runs}
+              locateActivity={locateActivity}
+              setActivity={setActivity}
+              runIndex={runIndex}
+              setRunIndex={setRunIndex}
+            />
+          )}
+        </div>
       </div>
-      {/* Enable Audiences in Vercel Analytics: https://vercel.com/docs/concepts/analytics/audiences/quickstart */}
+
       {import.meta.env.VERCEL && <Analytics />}
     </Layout>
   );
