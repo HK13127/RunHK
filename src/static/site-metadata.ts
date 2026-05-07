@@ -21,7 +21,7 @@ const data: ISiteMetadataResult = {
   description: 'Personal site and blog',
   navLinks: [
     {
-      name: '统计视图',
+      name: <span style={{ color: '#D93025' }}>统计</span>,
       url: `${getBasePath()}/summary`,
     },
     {
