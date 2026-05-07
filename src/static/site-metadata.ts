@@ -21,15 +21,15 @@ const data: ISiteMetadataResult = {
   description: 'Personal site and blog',
   navLinks: [
     {
-      name: 'Summary',
+      name: '统计视图',
       url: `${getBasePath()}/summary`,
     },
     {
-      name: 'Blog',
+      name: '主页',
       url: 'https://github.com/HK13127/RunHK',
     },
     {
-      name: 'About',
+      name: '关于',
       url: 'https://github.com/yihong0618/running_page/blob/master/README-CN.md',
     },
   ],
