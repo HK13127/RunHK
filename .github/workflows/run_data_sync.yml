@@ -322,13 +322,9 @@ jobs:
           # 密钥自动登录，无需手动弹窗
           tcb login --apiKeyId $TENCENT_CLOUD_SECRET_ID --apiKey $TENCENT_CLOUD_SECRET_KEY
 
-          # 官方正确切换云开发环境命令
-          tcb env switch $TENCENT_CLOUD_ENV_ID
-          echo "当前使用的云开发环境："
-          tcb env current
-
-          # --force 强制覆盖云端文件，不会弹出确认框，适配GitHub自动运行
-          tcb hosting deploy ./dist --force
+          # 重点：部署命令直接通过 -e 指定目标环境，不需要执行env use/switch，规避所有环境命令报错
+          # --force 强制覆盖云端文件，无交互确认，适配GitHub自动化
+          tcb hosting deploy ./dist --force -e $TENCENT_CLOUD_ENV_ID
 
           echo "🎉 CloudBase静态网站部署全部完成！"
         
