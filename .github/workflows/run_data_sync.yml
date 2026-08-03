@@ -307,31 +307,31 @@ jobs:
           TENCENT_CLOUD_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
           TENCENT_CLOUD_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
           TENCENT_CLOUD_ENV_ID: ${{ secrets.TENCENT_ENV_ID }}
-      run: |
-        echo "开始部署到 CloudBase..."
-        # 检查dist打包目录
-        if [ ! -d "./dist" ]; then
-          echo "❌ 错误：dist 目录不存在，终止部署！"
-          exit 1
-        fi
-        echo "✅ dist目录校验通过，开始部署流程"
+        run: |
+          echo "开始部署到 CloudBase..."
+          # 检查dist打包目录
+          if [ ! -d "./dist" ]; then
+            echo "❌ 错误：dist 目录不存在，终止部署！"
+            exit 1
+          fi
+          echo "✅ dist目录校验通过，开始部署流程"
 
-        # 全局安装腾讯云CloudBase命令行工具
-        npm install -g @cloudbase/cli
+          # 全局安装腾讯云CloudBase命令行工具
+          npm install -g @cloudbase/cli
 
-        # 密钥自动登录，无需手动弹窗
-        tcb login --apiKeyId $TENCENT_CLOUD_SECRET_ID --apiKey $TENCENT_CLOUD_SECRET_KEY
+          # 密钥自动登录，无需手动弹窗
+          tcb login --apiKeyId $TENCENT_CLOUD_SECRET_ID --apiKey $TENCENT_CLOUD_SECRET_KEY
 
-        # 官方正确切换云开发环境命令
-        tcb env switch $TENCENT_CLOUD_ENV_ID
-        echo "当前使用的云开发环境："
-        tcb env current
+          # 官方正确切换云开发环境命令
+          tcb env switch $TENCENT_CLOUD_ENV_ID
+          echo "当前使用的云开发环境："
+          tcb env current
 
-        # --force 强制覆盖云端文件，不会弹出确认框，适配GitHub自动运行
-        tcb hosting deploy ./dist --force
+          # --force 强制覆盖云端文件，不会弹出确认框，适配GitHub自动运行
+          tcb hosting deploy ./dist --force
 
-        echo "🎉 CloudBase静态网站部署全部完成！"
-
+          echo "🎉 CloudBase静态网站部署全部完成！"
+        
       - name: Set Output
         id: set_output
         env:
